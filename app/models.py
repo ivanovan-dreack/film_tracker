@@ -9,7 +9,7 @@ class FilmeStatus(Enum):
 @dataclass
 class Film:
     id: int
-    title: str
+    titel: str
     jahr: int
     genres: List[str]
     kommentare: List[str] = field(default_factory=list)
