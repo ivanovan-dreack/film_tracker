@@ -20,9 +20,12 @@ def _parse_jahr(jahr_text: str) -> int:
     jahr_text = (jahr_text or "").strip()
     if not jahr_text:
         return 0
-    first = jahr_text.split("-")[0].split("-")[0].strip()
+    
+    jahr_text = jahr_text.replace("–", "-").replace("—", "-")
+
+    first_part = jahr_text.split("-")[0].strip()
     try:
-        return int(first)
+        return int(first_part)
     except ValueError:
         return 0
     
