@@ -1,4 +1,4 @@
-from app.providers.omdb import film_von_omdb_holen
+from app.providers.omdb import film_von_omdb_holen, _parse_jahr
 
 film = film_von_omdb_holen("Dune", 2021)
 print(film)
