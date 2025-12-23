@@ -1,10 +1,17 @@
 from app.repository import FilmeRepository
-from app.models import FilmeStatus
+from app.models import FilmeStatus, Film
 
 def test_repo_add_comment_and_status():
     repo = FilmeRepository()
 
-    film = repo.hinzu("Dune", 2021, ["Sci-Fi"])
+    film = Film(
+            id = 1,
+            titel = "Dune",
+            jahr = 2021,
+            status= FilmeStatus.GEPLANT,
+            genres=["Sci-Fi"],
+        )
+    film = repo.hinzu(film)
     repo.hinzufuegen_kommentar(film.id, "Sehr gut")
     repo.set_status(film.id, FilmeStatus.GESEHEN)
 
