@@ -19,16 +19,16 @@ class FilmeRepository:
                 return f
             return None
 
-    def hinzu(self, titel: str, jahr: int, genres: List[str]) -> Optional[Film]:
-        if any(f.titel.lower() == titel.lower() and f.jahr == jahr for f in self._filme):
-            raise ValueError(f"Das Film {titel} {jahr} exestriert schon.")
+    def hinzu(self, film: Film) -> Optional[Film]:
+        if any(f.titel.lower() == film.titel.lower() and f.jahr == film.jahr for f in self._filme):
+            raise ValueError(f"Das Film {film.titel} {film.jahr} exestriert schon.")
 
         film = Film(
             id = self._next_id,
-            titel = titel.strip(),
-            jahr = int(jahr),
+            titel = film.titel.strip(),
+            jahr = int(film.jahr),
             status= FilmeStatus.GEPLANT,
-            genres=[g.strip() for g in genres if g.strip()],
+            genres=[g.strip() for g in film.genres if g.strip()],
         )
         self._filme.append(film)
         self._next_id += 1
