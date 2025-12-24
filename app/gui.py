@@ -7,10 +7,7 @@ from app.repository import FilmeRepository
 # если OMDb модуль у тебя есть:
 from app.providers.omdb import film_von_omdb_holen
 
-# твои функции чтения/записи (поменяй импорт под свои файлы)
-# from app.speicher_json import speichern_json, lesen_json
-# from app.speicher_xml import speichern_xml, lesen_xml
-
+import app.converter
 
 class FilmTrackerGUI(tk.Tk):
     def __init__(self):
@@ -31,36 +28,49 @@ class FilmTrackerGUI(tk.Tk):
         right = ttk.Frame(self, padding=10)
         right.pack(side="right", fill="both", expand=True)
 
-        # --- Eingabe ---
-        ttk.Label(left, text="Titel:").grid(row=0, column=0, sticky="w")
+        PAD_Y = 6
+        ENTRY_WIDTH = 36
+
+        # --- Titel ---
+        ttk.Label(left, text="Titel:").grid(row=0, column=0, sticky="w", pady=PAD_Y)
         self.titel_var = tk.StringVar()
-        ttk.Entry(left, textvariable=self.titel_var, width=30).grid(row=0, column=1, pady=4)
+        ttk.Entry(left, textvariable=self.titel_var, width=ENTRY_WIDTH)\
+        .grid(row=0, column=1, pady=PAD_Y, sticky="ew")
 
-        ttk.Label(left, text="Jahr:").grid(row=1, column=0, sticky="w")
+        # --- Jahr ---
+        ttk.Label(left, text="Jahr:").grid(row=1, column=0, sticky="w", pady=PAD_Y)
         self.jahr_var = tk.StringVar()
-        ttk.Entry(left, textvariable=self.jahr_var, width=10).grid(row=1, column=1, sticky="w", pady=4)
+        ttk.Entry(left, textvariable=self.jahr_var, width=ENTRY_WIDTH)\
+        .grid(row=1, column=1, pady=PAD_Y, sticky="ew")
 
-        ttk.Button(left, text="Suchen (OMDb)", command=self.suchen_omdb).grid(row=2, column=0, columnspan=2, sticky="ew", pady=6)
+        # --- Suchen ---
+        ttk.Button(left, text="Suchen (OMDb)", command=self.suchen_omdb, width=ENTRY_WIDTH)\
+        .grid(row=2, column=0, columnspan=2, pady=PAD_Y, sticky="ew")
 
-        # Status
-        ttk.Label(left, text="Status:").grid(row=3, column=0, sticky="w")
+        # --- Status ---
+        ttk.Label(left, text="Status:").grid(row=3, column=0, sticky="w", pady=PAD_Y)
         self.status_var = tk.StringVar(value=FilmeStatus.GEPLANT.value)
         ttk.Combobox(
-            left,
-            textvariable=self.status_var,
-            values=[s.value for s in FilmeStatus],
-            state="readonly",
-            width=12
-        ).grid(row=3, column=1, sticky="w", pady=4)
+        left,
+        textvariable=self.status_var,
+        values=[s.value for s in FilmeStatus],
+        state="readonly",
+        width=ENTRY_WIDTH - 2
+        ).grid(row=3, column=1, pady=PAD_Y, sticky="ew")
 
-        # Kommentar
-        ttk.Label(left, text="Kommentar:").grid(row=4, column=0, sticky="w")
+        # --- Kommentar ---
+        ttk.Label(left, text="Kommentar:").grid(row=4, column=0, sticky="w", pady=PAD_Y)
         self.kommentar_var = tk.StringVar()
-        ttk.Entry(left, textvariable=self.kommentar_var, width=30).grid(row=4, column=1, pady=4)
+        ttk.Entry(left, textvariable=self.kommentar_var, width=ENTRY_WIDTH)\
+        .grid(row=4, column=1, pady=PAD_Y, sticky="ew")
 
-        ttk.Button(left, text="Kommentar hinzufügen", command=self.kommentar_hinzufuegen).grid(row=5, column=0, columnspan=2, sticky="ew", pady=4)
+        # --- Kommentar Button ---
+        ttk.Button(left, text="Kommentar hinzufügen", command=self.kommentar_hinzufuegen, width=ENTRY_WIDTH)\
+        .grid(row=5, column=0, columnspan=2, pady=PAD_Y, sticky="ew")
 
-        ttk.Button(left, text="In Liste hinzufügen", command=self.in_liste_hinzufuegen).grid(row=6, column=0, columnspan=2, sticky="ew", pady=10)
+        # --- Hinzufügen ---
+        ttk.Button(left, text="In Liste hinzufügen", command=self.in_liste_hinzufuegen, width=ENTRY_WIDTH)\
+        .grid(row=6, column=0, columnspan=2, pady=PAD_Y, sticky="ew")
 
         # Info Bereich
         self.info = tk.Text(left, width=40, height=12)
