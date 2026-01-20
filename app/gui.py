@@ -12,9 +12,10 @@ import app.converter
 class FilmTrackerGUI(tk.Tk):
     def __init__(self):
         super().__init__()
+        
         self.title("Film Tracker")
-        self.geometry("900x520")
-        self.resizable(False, False)
+        self.geometry("1000x520")
+        self.resizable(True, False)
 
         self.repo = FilmeRepository()
         self.aktueller_film: Film | None = None
@@ -29,22 +30,22 @@ class FilmTrackerGUI(tk.Tk):
         right.pack(side="right", fill="both", expand=True)
 
         PAD_Y = 6
-        ENTRY_WIDTH = 36
+        WIDTH = 36
 
         # --- Titel ---
         ttk.Label(left, text="Titel:").grid(row=0, column=0, sticky="w", pady=PAD_Y)
         self.titel_var = tk.StringVar()
-        ttk.Entry(left, textvariable=self.titel_var, width=ENTRY_WIDTH)\
+        ttk.Entry(left, textvariable=self.titel_var, width=WIDTH)\
         .grid(row=0, column=1, pady=PAD_Y, sticky="ew")
 
         # --- Jahr ---
         ttk.Label(left, text="Jahr:").grid(row=1, column=0, sticky="w", pady=PAD_Y)
         self.jahr_var = tk.StringVar()
-        ttk.Entry(left, textvariable=self.jahr_var, width=ENTRY_WIDTH)\
+        ttk.Entry(left, textvariable=self.jahr_var, width=WIDTH)\
         .grid(row=1, column=1, pady=PAD_Y, sticky="ew")
 
         # --- Suchen ---
-        ttk.Button(left, text="Suchen (OMDb)", command=self.suchen_omdb, width=ENTRY_WIDTH)\
+        ttk.Button(left, text="Suchen (OMDb)", command=self.suchen_omdb, width=WIDTH)\
         .grid(row=2, column=0, columnspan=2, pady=PAD_Y, sticky="ew")
 
         # --- Status ---
@@ -54,22 +55,21 @@ class FilmTrackerGUI(tk.Tk):
         left,
         textvariable=self.status_var,
         values=[s.value for s in FilmeStatus],
-        state="readonly",
-        width=ENTRY_WIDTH - 2
+        state="readonly"
         ).grid(row=3, column=1, pady=PAD_Y, sticky="ew")
 
         # --- Kommentar ---
         ttk.Label(left, text="Kommentar:").grid(row=4, column=0, sticky="w", pady=PAD_Y)
         self.kommentar_var = tk.StringVar()
-        ttk.Entry(left, textvariable=self.kommentar_var, width=ENTRY_WIDTH)\
+        ttk.Entry(left, textvariable=self.kommentar_var, width=WIDTH)\
         .grid(row=4, column=1, pady=PAD_Y, sticky="ew")
 
         # --- Kommentar Button ---
-        ttk.Button(left, text="Kommentar hinzufügen", command=self.kommentar_hinzufuegen, width=ENTRY_WIDTH)\
+        ttk.Button(left, text="Kommentar hinzufügen", command=self.kommentar_hinzufuegen, width=WIDTH)\
         .grid(row=5, column=0, columnspan=2, pady=PAD_Y, sticky="ew")
 
         # --- Hinzufügen ---
-        ttk.Button(left, text="In Liste hinzufügen", command=self.in_liste_hinzufuegen, width=ENTRY_WIDTH)\
+        ttk.Button(left, text="In Tabelle hinzufügen", command=self.in_liste_hinzufuegen, width=WIDTH)\
         .grid(row=6, column=0, columnspan=2, pady=PAD_Y, sticky="ew")
 
         # Info Bereich
@@ -80,17 +80,40 @@ class FilmTrackerGUI(tk.Tk):
         # --- Rechte Seite: Liste ---
         ttk.Label(right, text="Meine Filme").pack(anchor="w")
 
-        self.listbox = tk.Listbox(right, height=20)
-        self.listbox.pack(fill="both", expand=True, pady=8)
-        self.listbox.bind("<<ListboxSelect>>", self.on_select)
+        columns = ("titel", "jahr", "status", "kommentar")
+
+        self.tree = ttk.Treeview(
+            right,
+            columns=columns,
+            show="headings",
+            height=18
+        )
+
+        self.tree.bind("<<TreeviewSelect>>", self.on_select)
+
+        self.tree.heading("titel", text="Titel")
+        self.tree.heading("jahr", text="Jahr")
+        self.tree.heading("status", text="Status")
+        self.tree.heading("kommentar", text="Kommentar")
+
+        self.tree.column("titel", width=220)
+        self.tree.column("jahr", width=60, anchor="center")
+        self.tree.column("status", width=90, anchor="center")
+        self.tree.column("kommentar", width=260, anchor="center")
+
+        self.tree.pack(fill="both", expand=True, pady=8)
 
         btns = ttk.Frame(right)
-        btns.pack(fill="x")
+        btns.pack(fill="x", expand=False)
 
-        ttk.Button(btns, text="Status: GESEHEN", command=lambda: self.status_setzen(FilmeStatus.GESEHEN)).pack(side="left", padx=4)
-        ttk.Button(btns, text="Status: GEPLANT", command=lambda: self.status_setzen(FilmeStatus.GEPLANT)).pack(side="left", padx=4)
+        ttk.Button(btns, text="Status: gesehen", command=lambda: self.status_setzen(FilmeStatus.GESEHEN.value)).pack(side="left", padx=4)
+        ttk.Button(btns, text="Status: geplant", command=lambda: self.status_setzen(FilmeStatus.GEPLANT.value)).pack(side="left", padx=4)
 
-        ttk.Button(btns, text="Refresh", command=self.refresh_liste).pack(side="right", padx=4)
+        ttk.Button(btns, text="JSON speichern", command=lambda: app.converter.speichern_json(self.repo.list_alle())).pack(side="right", padx=4)
+        ttk.Button(btns, text="JSON lesen", command=lambda: self.json_laden()).pack(side="right", padx=4)
+
+        ttk.Button(btns, text="XML speichern", command=lambda: app.converter.speichern_xml(self.repo.list_alle())).pack(side="right", padx=4)
+        ttk.Button(btns, text="XML lesen", command=lambda: self.xml_laden()).pack(side="right", padx=4)
 
         self.refresh_liste()
 
@@ -126,15 +149,26 @@ class FilmTrackerGUI(tk.Tk):
             messagebox.showerror("OMDb Fehler", str(e))
 
     def kommentar_hinzufuegen(self):
-        if self.aktueller_film is None:
-            messagebox.showinfo("Info", "Bitte zuerst einen Film suchen.")
-            return
         text = self.kommentar_var.get().strip()
         if not text:
             return
-        self.aktueller_film.kommentare.append(text)
-        self.kommentar_var.set("")
-        self._show_info(self.aktueller_film, None, None)
+
+        film_id = self.get_selected_film_id()
+
+        # если выбран фильм в таблице — добавляем коммент к сохранённому фильму
+        if film_id is not None:
+            try:
+                updated = self.repo.hinzufuegen_kommentar(film_id, text)
+                self.kommentar_var.set("")
+                self.refresh_liste()
+                self._show_info(updated, None, None)
+            except Exception as e:
+                messagebox.showerror("Fehler", str(e))
+            return
+
+        if self.aktueller_film is None:
+            messagebox.showinfo("Info", "Bitte zuerst einen Film suchen oder einen Film in der Tabelle auswählen.")
+            return
 
     def in_liste_hinzufuegen(self):
         if self.aktueller_film is None:
@@ -150,32 +184,52 @@ class FilmTrackerGUI(tk.Tk):
             messagebox.showerror("Fehler", str(e))
 
     def refresh_liste(self):
-        self.listbox.delete(0, tk.END)
+        self.tree.delete(*self.tree.get_children())
+
         for film in self.repo.list_alle():
-            self.listbox.insert(tk.END, f"{film.id}. {film.titel} ({film.jahr}) [{film.status.value}]")
+            kommentar = ""
+            if film.kommentare:
+                kommentar = film.kommentare[-1]
+
+            self.tree.insert(
+                "",
+                "end",
+                iid=str(film.id),
+                values=(
+                    film.titel,
+                    film.jahr,
+                    film.status.value,
+                    kommentar
+                )
+            )
+
+    def get_selected_film_id(self):
+        selected = self.tree.selection()
+        if not selected:
+            return None
+        return int(selected[0])
 
     def on_select(self, _event):
-        sel = self.listbox.curselection()
-        if not sel:
+        film_id = self.get_selected_film_id()
+        if film_id is None:
             return
-        text = self.listbox.get(sel[0])
-        film_id = int(text.split(".")[0])
         film = self.repo.get_by_id(film_id)
         if film:
+            self.aktueller_film = film   # <-- ВАЖНО
             self._show_info(film, None, None)
 
-    def status_setzen(self, status: FilmeStatus):
-        sel = self.listbox.curselection()
-        if not sel:
-            messagebox.showinfo("Info", "Bitte Film in der Liste auswählen.")
+    def status_setzen(self, status_value: str):
+        film_id = self.get_selected_film_id()
+        if film_id is None:
+            messagebox.showinfo("Info", "Bitte Film auswählen.")
             return
-        text = self.listbox.get(sel[0])
-        film_id = int(text.split(".")[0])
-        try:
-            self.repo.set_status(film_id, status)
-            self.refresh_liste()
-        except Exception as e:
-            messagebox.showerror("Fehler", str(e))
+
+        status_enum = FilmeStatus(status_value)
+
+        # Repo soll NUR Enum bekommen
+        self.repo.set_status(film_id, status_enum)
+        self.refresh_liste()
+        
 
     # -------- UI Helpers --------
     def _show_info(self, film: Film, schauspieler, imdb_rating):
@@ -200,6 +254,15 @@ class FilmTrackerGUI(tk.Tk):
         self.info.delete("1.0", tk.END)
         self.info.configure(state="disabled")
 
+    def json_laden(self):
+        filme = app.converter.lesen_json()
+        self.repo.set_alle(filme)
+        self.refresh_liste()
+
+    def xml_laden(self):
+        filme = app.converter.lesen_xml()
+        self.repo.set_alle(filme)
+        self.refresh_liste()
 
 def main():
     app = FilmTrackerGUI()
