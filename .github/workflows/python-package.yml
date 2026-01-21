@@ -38,3 +38,7 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+    - name: Test with pytest
+      env:
+        OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+      run: pytest
