@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 
 from app.models import Film, FilmeStatus
 from app.repository import FilmeRepository
@@ -277,14 +277,40 @@ class FilmTrackerGUI(tk.Tk):
         self.kommentar_var.set("")
 
     def json_laden(self):
-        filme = app.converter.lesen_json()
-        self.repo.set_alle(filme)
-        self.refresh_liste()
+        pfad = filedialog.askopenfilename(
+        title="JSON lesen",
+        filetypes=[("JSON Dateien", "*.json"), ("Alle Dateien", "*.*")]
+        )
+        if not pfad:
+            return
+        try:
+            filme = app.converter.lesen_json(pfad)
+            self.repo.set_alle(filme)
+            self.aktueller_film = None
+            self._clear_info()
+            self.refresh_liste()
+            messagebox.showinfo("OK", f"Geladen: {len(filme)} Filme")
+        except Exception as e:
+            messagebox.showerror("Fehler", str(e))
+
 
     def xml_laden(self):
-        filme = app.converter.lesen_xml()
-        self.repo.set_alle(filme)
-        self.refresh_liste()
+        pfad = filedialog.askopenfilename(
+        title="XML lesen",
+        filetypes=[("XML Dateien", "*.xml"), ("Alle Dateien", "*.*")]
+        )
+        if not pfad:
+            return
+
+        try:
+            filme = app.converter.lesen_xml(pfad)    # returns List[Film]
+            self.repo.set_alle(filme)
+            self.aktueller_film = None
+            self._clear_info()
+            self.refresh_liste()
+            messagebox.showinfo("OK", f"Geladen: {len(filme)} Filme")
+        except Exception as e:
+            messagebox.showerror("Fehler", str(e))
 
 def main():
     app = FilmTrackerGUI()
