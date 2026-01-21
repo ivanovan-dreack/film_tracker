@@ -157,15 +157,14 @@ class FilmTrackerGUI(tk.Tk):
         if not text:
             return
 
-        film_id = self.aktueller_film.id()
+        selected_id = self.get_selected_film_id()
 
-        if film_id is not None:
+        if selected_id is not None:
             try:
-                updated = self.repo.hinzufuegen_kommentar(film_id, text)
-                self.kommentar_var.set("")
+                updated = self.repo.hinzufuegen_kommentar(selected_id, text)
                 self.refresh_liste()
                 self._show_info(updated, None, None)
-                self._clear_info()
+                self.kommentar_var.set("")
             except Exception as e:
                 messagebox.showerror("Fehler", str(e))
             return
@@ -173,6 +172,10 @@ class FilmTrackerGUI(tk.Tk):
         if self.aktueller_film is None:
             messagebox.showinfo("Info", "Bitte zuerst einen Film suchen oder einen Film in der Tabelle auswählen.")
             return
+        
+        self.aktueller_film.kommentare.append(text)
+        self.kommentar_var.set("")
+        self._show_info(self.aktueller_film, None, None)
 
     def in_liste_hinzufuegen(self):
         if self.aktueller_film is None:
