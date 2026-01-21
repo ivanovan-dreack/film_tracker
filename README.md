@@ -2,7 +2,9 @@
 
 Eine einfache Desktop-Anwendung zur Verwaltung von Filmen.
 Der Benutzer kann Filme suchen, speichern, kommentieren und deren Status verwalten.
-
+---
+Dieses Projekt wurde zusätzlich auf GitHub veröffentlicht:
+https://github.com/ivanovan-dreack/film_tracker
 ---
 
 ## Funktionen
