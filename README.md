@@ -12,3 +12,7 @@ Der Benutzer kann Filme suchen, speichern, kommentieren und deren Status verwalt
 - Kommentare zu Filmen
 - Anzeigen aller gespeicherten Filme
 - Import & Export über JSON und XML
+
+## Struktogramm – Kommentar hinzufügen
+
+![Struktogramm: Kommentar hinzufügen](images/struktog_2026-01-21.png)
