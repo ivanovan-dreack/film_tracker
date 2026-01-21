@@ -1,6 +1,6 @@
 from app.models import Film, FilmeStatus
 
-def speichern_json(filme, dateiname="filme.json"):
+def speichern_json(filme, dateiname):
     with open(dateiname, "w", encoding="utf-8") as f:
         f.write("[\n")
 
@@ -109,7 +109,7 @@ def lesen_json(dateiname):
 
     return filme
 
-def speichern_xml(filme, dateiname="filme.xml"):
+def speichern_xml(filme, dateiname):
     with open(dateiname, "w", encoding="utf-8") as f:
         f.write(f'<?xml version="1.0" encoding="UTF-8"?>\n')
         f.write('<Filme>\n')

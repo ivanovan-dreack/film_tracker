@@ -113,10 +113,10 @@ class FilmTrackerGUI(tk.Tk):
         ttk.Button(btns, text="Status: gesehen", command=lambda: self.status_setzen(FilmeStatus.GESEHEN.value)).pack(side="left", padx=4)
         ttk.Button(btns, text="Status: geplant", command=lambda: self.status_setzen(FilmeStatus.GEPLANT.value)).pack(side="left", padx=4)
 
-        ttk.Button(btns, text="JSON speichern", command=lambda: app.converter.speichern_json(self.repo.list_alle())).pack(side="right", padx=4)
+        ttk.Button(btns, text="JSON speichern", command=lambda: self.json_speichern()).pack(side="right", padx=4)
         ttk.Button(btns, text="JSON lesen", command=lambda: self.json_laden()).pack(side="right", padx=4)
 
-        ttk.Button(btns, text="XML speichern", command=lambda: app.converter.speichern_xml(self.repo.list_alle())).pack(side="right", padx=4)
+        ttk.Button(btns, text="XML speichern", command=lambda: self.xml_speichern()).pack(side="right", padx=4)
         ttk.Button(btns, text="XML lesen", command=lambda: self.xml_laden()).pack(side="right", padx=4)
 
         self.refresh_liste()
@@ -146,7 +146,7 @@ class FilmTrackerGUI(tk.Tk):
                 genres=daten.genres,
                 kommentare=[],
                 bewertungen=None,
-                status=FilmeStatus(self.status_var.get()),
+                status=FilmeStatus.GEPLANT,
             )
             self._show_info(self.aktueller_film, daten.schauspieler, daten.imdb_rating)
         except Exception as e:
@@ -157,7 +157,7 @@ class FilmTrackerGUI(tk.Tk):
         if not text:
             return
 
-        film_id = self.get_selected_film_id()
+        film_id = self.aktueller_film.id()
 
         if film_id is not None:
             try:
@@ -179,6 +179,7 @@ class FilmTrackerGUI(tk.Tk):
             messagebox.showinfo("Info", "Bitte zuerst einen Film suchen.")
             return
         try:
+            self.aktueller_film.status=FilmeStatus(self.status_var.get())
             gespeichert = self.repo.hinzu(self.aktueller_film)
             self.aktueller_film = None
             self._clear_info()
@@ -238,7 +239,7 @@ class FilmTrackerGUI(tk.Tk):
             self._show_info(film, None, None)
 
     def status_setzen(self, status_value: str):
-        film_id = self.get_selected_film_id()
+        film_id = self.aktueller_film.id
         if film_id is None:
             messagebox.showinfo("Info", "Bitte Film auswählen.")
             return
@@ -293,6 +294,21 @@ class FilmTrackerGUI(tk.Tk):
         except Exception as e:
             messagebox.showerror("Fehler", str(e))
 
+    def json_speichern(self):
+        pfad = filedialog.asksaveasfilename(
+            title="JSON speichern",
+            defaultextension=".json",
+            filetypes=[("JSON Dateien", "*.json"), ("Alle Dateien", "*.*")]
+        )
+        if not pfad:
+            return 
+
+        try:
+            app.converter.speichern_json(self.repo.list_alle(), pfad)
+            messagebox.showinfo("OK", "JSON gespeichert.")
+        except Exception as e:
+            messagebox.showerror("Fehler", str(e))
+
 
     def xml_laden(self):
         pfad = filedialog.askopenfilename(
@@ -309,6 +325,21 @@ class FilmTrackerGUI(tk.Tk):
             self._clear_info()
             self.refresh_liste()
             messagebox.showinfo("OK", f"Geladen: {len(filme)} Filme")
+        except Exception as e:
+            messagebox.showerror("Fehler", str(e))
+
+    def xml_speichern(self):
+        pfad = filedialog.asksaveasfilename(
+            title="XML speichern",
+            defaultextension=".xml",
+            filetypes=[("XML Dateien", "*.xml"), ("Alle Dateien", "*.*")]
+        )
+        if not pfad:
+            return
+
+        try:
+            app.converter.speichern_xml(self.repo.list_alle(), pfad)
+            messagebox.showinfo("OK", "XML gespeichert.")
         except Exception as e:
             messagebox.showerror("Fehler", str(e))
 
