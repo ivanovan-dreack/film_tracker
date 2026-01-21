@@ -72,9 +72,13 @@ class FilmTrackerGUI(tk.Tk):
         ttk.Button(left, text="In Tabelle hinzufügen", command=self.in_liste_hinzufuegen, width=WIDTH)\
         .grid(row=6, column=0, columnspan=2, pady=PAD_Y, sticky="ew")
 
+        # --- Löschen Button ---
+        ttk.Button(left, text="Film löschen", command=self.aus_liste_loeschen, width=WIDTH)\
+        .grid(row=7, column=0, columnspan=2, pady=PAD_Y, sticky="ew")
+
         # Info Bereich
         self.info = tk.Text(left, width=40, height=12)
-        self.info.grid(row=7, column=0, columnspan=2, pady=8)
+        self.info.grid(row=8, column=0, columnspan=2, pady=8)
         self.info.configure(state="disabled")
 
         # --- Rechte Seite: Liste ---
@@ -155,13 +159,13 @@ class FilmTrackerGUI(tk.Tk):
 
         film_id = self.get_selected_film_id()
 
-        # если выбран фильм в таблице — добавляем коммент к сохранённому фильму
         if film_id is not None:
             try:
                 updated = self.repo.hinzufuegen_kommentar(film_id, text)
                 self.kommentar_var.set("")
                 self.refresh_liste()
                 self._show_info(updated, None, None)
+                self._clear_info()
             except Exception as e:
                 messagebox.showerror("Fehler", str(e))
             return
@@ -180,6 +184,21 @@ class FilmTrackerGUI(tk.Tk):
             self._clear_info()
             self.refresh_liste()
             messagebox.showinfo("OK", f"Hinzugefügt: {gespeichert.titel} ({gespeichert.jahr})")
+            
+        except Exception as e:
+            messagebox.showerror("Fehler", str(e))
+
+    def aus_liste_loeschen(self):
+        if self.aktueller_film is None:
+            messagebox.showinfo("Info", "Bitte zuerst einen Film suchen.")
+            return
+        try:
+            self.repo.film_loeschen(self.aktueller_film)
+            self._clear_info()
+            self.refresh_liste()
+            messagebox.showinfo("OK", f"Der Film {self.aktueller_film.titel} wurde gelöscht.")
+            self.aktueller_film = None
+
         except Exception as e:
             messagebox.showerror("Fehler", str(e))
 
@@ -215,7 +234,7 @@ class FilmTrackerGUI(tk.Tk):
             return
         film = self.repo.get_by_id(film_id)
         if film:
-            self.aktueller_film = film   # <-- ВАЖНО
+            self.aktueller_film = film 
             self._show_info(film, None, None)
 
     def status_setzen(self, status_value: str):
@@ -226,7 +245,7 @@ class FilmTrackerGUI(tk.Tk):
 
         status_enum = FilmeStatus(status_value)
 
-        # Repo soll NUR Enum bekommen
+        # Repo soll Enum bekommen
         self.repo.set_status(film_id, status_enum)
         self.refresh_liste()
         
@@ -253,6 +272,9 @@ class FilmTrackerGUI(tk.Tk):
         self.info.configure(state="normal")
         self.info.delete("1.0", tk.END)
         self.info.configure(state="disabled")
+        self.titel_var.set("")
+        self.jahr_var.set("")
+        self.kommentar_var.set("")
 
     def json_laden(self):
         filme = app.converter.lesen_json()

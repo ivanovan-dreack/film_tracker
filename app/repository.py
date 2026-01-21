@@ -36,6 +36,14 @@ class FilmeRepository:
         self._filme.append(film)
         return film
     
+    def film_loeschen(self, film: Film) -> None:
+        for i, f in enumerate(self._filme):
+            if f.id == film.id:
+                del self._filme[i]
+                return
+            
+        raise ValueError(f"Der Film mit ID {film.id} kann nicht gefunden werden.")
+    
     def set_status(self, film_id: int, status: FilmeStatus):
         film = self.get_by_id(film_id)
         if film is None:
