@@ -4,7 +4,6 @@ from tkinter import ttk, messagebox, filedialog
 from app.models import Film, FilmeStatus
 from app.repository import FilmeRepository
 
-# если OMDb модуль у тебя есть:
 from app.providers.omdb import film_von_omdb_holen
 
 import app.converter
