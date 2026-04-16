@@ -144,8 +144,6 @@ def speichern_xml(filme, dateiname):
             f.write('   </Film>\n')
         f.write('</Filme>\n')
 
-from app.models import Film, FilmeStatus
-
 
 def lesen_xml(dateiname):
     filme = []
